@@ -1,40 +1,47 @@
-DontRun = true
+global DontRun:boolean = true
 
 require "build"
 
 
-local cmd_out = {}
+local cmd_out:{string} = {}
 local stdout = ""
-local exec_called = {}
+local exec_called:{string} = {}
 
-function mock_print(msg)
+local function mock_print(msg:string):string
     stdout = stdout .. msg .. "\n"
 end
 
-function mock_exec_cmd(print, cmd, print_output)
+local function mock_exec_cmd(_:Printer, cmd:string, _?:boolean):(boolean,string,string)
     table.insert(exec_called, cmd)
     local out = cmd_out[#exec_called] or ""
     return true, out, ""
 end
 
-function setup(cmd_out_case)
+local failed_scope = ""
+
+local function failed(msg:string)
+    print("test " .. failed_scope .. " failed : \n\t" .. msg)
+    os.exit(1)
+end
+
+local function setup(cmd_out_case:{string})
     cmd_out = cmd_out_case
     stdout = ""
     exec_called = {}
 end
 
-function test(expected, out)
+local function test(expected:{string}, out:string)
     if out ~= stdout then
-        assert("stdout out missmatch want \n\t\t'" .. out
+        failed("stdout out missmatch want \n\t\t'" .. out
             .. "'\n\t but got \n\t\t'" .. stdout .. "'"
         )
     end
     if #expected ~= #exec_called then
-        assert("call stack size expectd " .. #expected .. " but got " .. #exec_called)
+        failed("call stack size expectd " .. #expected .. " but got " .. #exec_called)
     end
     for i = 1, #expected do
         if expected[i] ~= exec_called[i] then
-            assert("for call [" .. i
+            failed("for call [" .. i
                 .. "] expectd \n\t\t'" .. expected[i]
                 .. "'\n\tbut got\n\t\t'" .. exec_called[i] .. "'"
             )
@@ -42,16 +49,16 @@ function test(expected, out)
     end
 end
 
-local assert_scope = ""
-
-function assert(msg)
-    print("test " .. assert_scope .. " failed : \n\t" .. msg)
-    os.exit(1)
+local record TestCase
+    arguments:{string}
+    cmd_out:{string}
+    exec_called:{string}
+    out:string
 end
 
-function run(test_case)
+local function run(test_case:{string:TestCase})
     for k, v in pairs(test_case) do
-        assert_scope = k
+        failed_scope = k
         setup(v.cmd_out)
         process_arguments(mock_exec_cmd, mock_print, v.arguments)
         test(v.exec_called, v.out)
@@ -59,7 +66,7 @@ function run(test_case)
     print("Test successfully passed")
 end
 
-local test_case = {
+local test_case:{string:TestCase} = {
     ["no source file"] = {
         arguments = { "build", "target_name" },
         cmd_out = {},
