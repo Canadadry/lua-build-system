@@ -66,7 +66,7 @@ local test_case = {
         exec_called = {
             "find src -type f",
             "find src -type f",
-            "clang++  -o target_name",
+            "clang++   -o target_name",
         },
         out = "Build completed successfully.\n",
     },
@@ -79,7 +79,7 @@ local test_case = {
             "find src -type f",
             "find src -type f",
             "clang++ -Wall -Wextra -std=c++11  -c src/main.cpp -o src/main.o",
-            "clang++ src/main.o -o target_name",
+            "clang++  src/main.o -o target_name",
         },
         out = "Build completed successfully.\n",
     },
@@ -93,7 +93,7 @@ local test_case = {
             "find src -type f",
             "find src -type f",
             "clang++ -Wall -Wextra -std=c++11 -Isrc/ext/ -c src/main.cpp -o src/main.o",
-            "clang++ src/main.o -o target_name",
+            "clang++  src/main.o -o target_name",
         },
         out = "Build completed successfully.\n",
     },
@@ -108,7 +108,7 @@ local test_case = {
             "find src -type f",
             "clang++ -Wall -Wextra -std=c++11 -Isrc/ext/ -Isrc/internal/ -c src/main.cpp -o src/main.o",
             "clang++ -Wall -Wextra -std=c++11 -Isrc/ext/ -Isrc/internal/ -c src/internal/impl.cpp -o src/internal/impl.o",
-            "clang++ src/main.o src/internal/impl.o -o target_name",
+            "clang++  src/main.o src/internal/impl.o -o target_name",
         },
         out = "Build completed successfully.\n",
     },
@@ -121,7 +121,46 @@ local test_case = {
             "find src -type f",
             "find src -type f",
             "clang++ -Wall -Wextra -std=c++11  -c src/main.c -o src/main.o",
-            "clang++ src/main.o -o target_name",
+            "clang++  src/main.o -o target_name",
+        },
+        out = "Build completed successfully.\n",
+    },
+    ["change compiler"] = {
+        arguments = { "build", "target_name", "gcc" },
+        cmd_out = {
+            "src/main.c"
+        },
+        exec_called = {
+            "find src -type f",
+            "find src -type f",
+            "gcc -Wall -Wextra -std=c++11  -c src/main.c -o src/main.o",
+            "gcc  src/main.o -o target_name",
+        },
+        out = "Build completed successfully.\n",
+    },
+    ["change compiler option"] = {
+        arguments = { "build", "target_name", "gcc", "-pedantic" },
+        cmd_out = {
+            "src/main.c"
+        },
+        exec_called = {
+            "find src -type f",
+            "find src -type f",
+            "gcc -pedantic  -c src/main.c -o src/main.o",
+            "gcc  src/main.o -o target_name",
+        },
+        out = "Build completed successfully.\n",
+    },
+    ["change linker option"] = {
+        arguments = { "build", "target_name", "gcc", "-pedantic", "-O2" },
+        cmd_out = {
+            "src/main.c"
+        },
+        exec_called = {
+            "find src -type f",
+            "find src -type f",
+            "gcc -pedantic  -c src/main.c -o src/main.o",
+            "gcc -O2 src/main.o -o target_name",
         },
         out = "Build completed successfully.\n",
     },

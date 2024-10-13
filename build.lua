@@ -67,10 +67,10 @@ function collect_include_dirs(files)
     return include_dirs
 end
 
-function compile_source(exec_cmd, print, source_file, include_flags_str)
+function compile_source(exec_cmd, print, compiler, compiler_options, source_file, include_flags_str)
     local object_file = source_file:gsub(".cpp$", ".o")
     object_file = object_file:gsub(".c$", ".o")
-    local compile_cmd = "clang++ -Wall -Wextra -std=c++11 "
+    local compile_cmd = compiler .. " " .. compiler_options .. " "
         .. include_flags_str
         .. " -c " .. source_file
         .. " -o " .. object_file
@@ -85,8 +85,11 @@ function compile_source(exec_cmd, print, source_file, include_flags_str)
     return object_file
 end
 
-function link_executable(exec_cmd, print, object_files, target)
-    local link_cmd = "clang++ " .. table.concat(object_files, " ") .. " -o " .. target
+function link_executable(exec_cmd, print, compiler, linker_options, object_files, target)
+    local link_cmd = compiler .. " "
+        .. linker_options .. " "
+        .. table.concat(object_files, " ")
+        .. " -o " .. target
 
     local result, _, errors = exec_cmd(print, link_cmd, true)
 
@@ -110,7 +113,7 @@ function run_program(exec_cmd, print, target)
     exec_cmd(print, "./" .. target .. " scene.xml", true)
 end
 
-function build_project(exec_cmd, print, target)
+function build_project(exec_cmd, print, target, compiler, compiler_options, linker_options)
     local source_exts = { [".c"] = true, [".cpp"] = true }
     local header_exts = { [".h"] = true, [".hpp"] = true }
 
@@ -125,19 +128,22 @@ function build_project(exec_cmd, print, target)
 
     local object_files = {}
     for _, source_file in ipairs(source_files) do
-        local object_file = compile_source(exec_cmd, print, source_file, include_flags_str)
+        local object_file = compile_source(exec_cmd, print, compiler, compiler_options, source_file, include_flags_str)
         table.insert(object_files, object_file)
     end
 
-    link_executable(exec_cmd, print, object_files, target)
+    link_executable(exec_cmd, print, compiler, linker_options, object_files, target)
 end
 
 function process_arguments(exec_cmd, print, cli_arg)
     local action = cli_arg[1]
     local target = cli_arg[2] or "a.aout"
+    local compiler = cli_arg[3] or "clang++"
+    local compiler_options = cli_arg[4] or "-Wall -Wextra -std=c++11"
+    local linker_options = cli_arg[5] or ""
 
     if action == "build" then
-        build_project(exec_cmd, print, target)
+        build_project(exec_cmd, print, target, compiler, compiler_options, linker_options)
     elseif action == "clean" then
         clean_build(exec_cmd, print, target)
     elseif action == "run" then
