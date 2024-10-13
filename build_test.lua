@@ -53,7 +53,7 @@ function run(test_case)
     for k, v in pairs(test_case) do
         assert_scope = k
         setup(v.cmd_out)
-        process_arguments(mock_exec_cmd, mock_print, { "build", "target_name" })
+        process_arguments(mock_exec_cmd, mock_print, v.arguments)
         test(v.exec_called, v.out)
     end
     print("Test successfully passed")
@@ -61,6 +61,7 @@ end
 
 local test_case = {
     ["no source file"] = {
+        arguments = { "build", "target_name" },
         cmd_out = {},
         exec_called = {
             "find src -type f",
@@ -70,6 +71,7 @@ local test_case = {
         out = "Build completed successfully.\n",
     },
     ["one cpp file"] = {
+        arguments = { "build", "target_name" },
         cmd_out = {
             "src/main.cpp"
         },
@@ -82,6 +84,7 @@ local test_case = {
         out = "Build completed successfully.\n",
     },
     ["one cpp file with header lib"] = {
+        arguments = { "build", "target_name" },
         cmd_out = {
             "src/main.cpp",
             "src/ext/stbimage.h",
@@ -95,6 +98,7 @@ local test_case = {
         out = "Build completed successfully.\n",
     },
     ["two cpp file with header lib"] = {
+        arguments = { "build", "target_name" },
         cmd_out = {
             "src/main.cpp\nsrc/internal/impl.cpp",
             "src/ext/stbimage.h\nsrc/internal/impl.hpp",
@@ -109,6 +113,7 @@ local test_case = {
         out = "Build completed successfully.\n",
     },
     ["one c file"] = {
+        arguments = { "build", "target_name" },
         cmd_out = {
             "src/main.c"
         },
