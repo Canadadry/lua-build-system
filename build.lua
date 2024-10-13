@@ -135,12 +135,18 @@ function build_project(exec_cmd, print, target, compiler, compiler_options, link
     link_executable(exec_cmd, print, compiler, linker_options, object_files, target)
 end
 
+function default_string(val, default)
+    if val == nil then return default end
+    if val == "" then return default end
+    return val
+end
+
 function process_arguments(exec_cmd, print, cli_arg)
     local action = cli_arg[1]
-    local target = cli_arg[2] or "a.aout"
-    local compiler = cli_arg[3] or "clang++"
-    local compiler_options = cli_arg[4] or "-Wall -Wextra -std=c++11"
-    local linker_options = cli_arg[5] or ""
+    local target = default_string(cli_arg[2], "a.aout")
+    local compiler = default_string(cli_arg[3], "clang++")
+    local compiler_options = default_string(cli_arg[4], "-Wall -Wextra -std=c++11")
+    local linker_options = default_string(cli_arg[5], "")
 
     if action == "build" then
         build_project(exec_cmd, print, target, compiler, compiler_options, linker_options)

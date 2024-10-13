@@ -164,6 +164,19 @@ local test_case = {
         },
         out = "Build completed successfully.\n",
     },
+    ["change linker option without changing compiler and compilr_options"] = {
+        arguments = { "build", "target_name", "", "", "-O2" },
+        cmd_out = {
+            "src/main.c"
+        },
+        exec_called = {
+            "find src -type f",
+            "find src -type f",
+            "clang++ -Wall -Wextra -std=c++11  -c src/main.c -o src/main.o",
+            "clang++ -O2 src/main.o -o target_name",
+        },
+        out = "Build completed successfully.\n",
+    },
 }
 
 run(test_case)
