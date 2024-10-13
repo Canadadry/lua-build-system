@@ -39,14 +39,15 @@ lua build.lua build <target_name> <compiler> <compiler_options> <linker_options>
 
 With :
  - `<target_name>` is the name of the final executable you want to create. Default `a.out`
+ - `<source>` is the directory where source file a stored. Default `src`
  - `<compiler>` is binary name of compiler. Default `clang++`
  - `<compiler_options>` are the options passed to the compiler . Default `-Wall -Wextra -std=c++11`
  - `<linker_options>` are the options passed to the link . Default ` `
 
 The build process will:
 
-    Search for .cpp source files in the src/ directory.
-    Compile each .cpp file into an object file.
+    Search for .cpp/.c source files in the src/ directory.
+    Compile each .c/.cpp file into an object file.
     Link the object files into the final executable.
 
 

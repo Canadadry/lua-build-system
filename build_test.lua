@@ -126,7 +126,7 @@ local test_case = {
         out = "Build completed successfully.\n",
     },
     ["change compiler"] = {
-        arguments = { "build", "target_name", "gcc" },
+        arguments = { "build", "target_name", "", "gcc" },
         cmd_out = {
             "src/main.c"
         },
@@ -139,7 +139,7 @@ local test_case = {
         out = "Build completed successfully.\n",
     },
     ["change compiler option"] = {
-        arguments = { "build", "target_name", "gcc", "-pedantic" },
+        arguments = { "build", "target_name", "", "gcc", "-pedantic" },
         cmd_out = {
             "src/main.c"
         },
@@ -152,7 +152,7 @@ local test_case = {
         out = "Build completed successfully.\n",
     },
     ["change linker option"] = {
-        arguments = { "build", "target_name", "gcc", "-pedantic", "-O2" },
+        arguments = { "build", "target_name", "", "gcc", "-pedantic", "-O2" },
         cmd_out = {
             "src/main.c"
         },
@@ -165,7 +165,7 @@ local test_case = {
         out = "Build completed successfully.\n",
     },
     ["change linker option without changing compiler and compilr_options"] = {
-        arguments = { "build", "target_name", "", "", "-O2" },
+        arguments = { "build", "target_name", "", "", "", "-O2" },
         cmd_out = {
             "src/main.c"
         },
@@ -174,6 +174,20 @@ local test_case = {
             "find src -type f",
             "clang++ -Wall -Wextra -std=c++11  -c src/main.c -o src/main.o",
             "clang++ -O2 src/main.o -o target_name",
+        },
+        out = "Build completed successfully.\n",
+    },
+
+    ["change the source folder"] = {
+        arguments = { "build", "target_name", "sources" },
+        cmd_out = {
+            "sources/main.c"
+        },
+        exec_called = {
+            "find sources -type f",
+            "find sources -type f",
+            "clang++ -Wall -Wextra -std=c++11  -c sources/main.c -o sources/main.o",
+            "clang++  sources/main.o -o target_name",
         },
         out = "Build completed successfully.\n",
     },

@@ -101,9 +101,9 @@ function link_executable(exec_cmd, print, compiler, linker_options, object_files
     print("Build completed successfully.")
 end
 
-function clean_build(exec_cmd, print, target)
+function clean_build(exec_cmd, print, target, sources)
     print("Cleaning build...")
-    local clean_cmd = "rm -f src/*.o " .. target
+    local clean_cmd = "rm -f " .. sources .. "/*.o " .. target
     exec_cmd(print, clean_cmd, true)
     print("Clean completed successfully.")
 end
@@ -113,12 +113,12 @@ function run_program(exec_cmd, print, target)
     exec_cmd(print, "./" .. target .. " scene.xml", true)
 end
 
-function build_project(exec_cmd, print, target, compiler, compiler_options, linker_options)
+function build_project(exec_cmd, print, target, sources, compiler, compiler_options, linker_options)
     local source_exts = { [".c"] = true, [".cpp"] = true }
     local header_exts = { [".h"] = true, [".hpp"] = true }
 
-    local source_files = find_files(exec_cmd, print, "src", source_exts)
-    local header_files = find_files(exec_cmd, print, "src", header_exts)
+    local source_files = find_files(exec_cmd, print, sources, source_exts)
+    local header_files = find_files(exec_cmd, print, sources, header_exts)
     local include_dirs = collect_include_dirs(header_files)
     local include_flags = {}
     for _, idir in ipairs(include_dirs) do
@@ -144,14 +144,15 @@ end
 function process_arguments(exec_cmd, print, cli_arg)
     local action = cli_arg[1]
     local target = default_string(cli_arg[2], "a.aout")
-    local compiler = default_string(cli_arg[3], "clang++")
-    local compiler_options = default_string(cli_arg[4], "-Wall -Wextra -std=c++11")
-    local linker_options = default_string(cli_arg[5], "")
+    local sources = default_string(cli_arg[3], "src")
+    local compiler = default_string(cli_arg[4], "clang++")
+    local compiler_options = default_string(cli_arg[5], "-Wall -Wextra -std=c++11")
+    local linker_options = default_string(cli_arg[6], "")
 
     if action == "build" then
-        build_project(exec_cmd, print, target, compiler, compiler_options, linker_options)
+        build_project(exec_cmd, print, target, sources, compiler, compiler_options, linker_options)
     elseif action == "clean" then
-        clean_build(exec_cmd, print, target)
+        clean_build(exec_cmd, print, target, sources)
     elseif action == "run" then
         run_program(exec_cmd, print, target)
     else
