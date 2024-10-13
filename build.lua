@@ -32,6 +32,10 @@ function exec_cmd_impl(print, cmd, print_output)
 end
 
 function find_files(exec_cmd, print, dir_path, extensions)
+    local end_with = function(str, suffix)
+        return str:sub(- #suffix) == suffix
+    end
+
     local files = {}
 
     local find_cmd = "find " .. dir_path .. " -type f"
@@ -43,9 +47,10 @@ function find_files(exec_cmd, print, dir_path, extensions)
     end
 
     for file in file_list:gmatch("[^\r\n]+") do
-        local ext = file:match("^.+(%..+)$")
-        if ext and extensions[ext] then
-            table.insert(files, file)
+        for _, ext in ipairs(extensions) do
+            if end_with(file, ext) then
+                table.insert(files, file)
+            end
         end
     end
 
@@ -114,11 +119,8 @@ function run_program(exec_cmd, print, target)
 end
 
 function build_project(exec_cmd, print, target, sources, compiler, compiler_options, linker_options)
-    local source_exts = { [".c"] = true, [".cpp"] = true }
-    local header_exts = { [".h"] = true, [".hpp"] = true }
-
-    local source_files = find_files(exec_cmd, print, sources, source_exts)
-    local header_files = find_files(exec_cmd, print, sources, header_exts)
+    local source_files = find_files(exec_cmd, print, sources, { ".c", ".cpp" })
+    local header_files = find_files(exec_cmd, print, sources, { ".h", ".hpp" })
     local include_dirs = collect_include_dirs(header_files)
     local include_flags = {}
     for _, idir in ipairs(include_dirs) do
