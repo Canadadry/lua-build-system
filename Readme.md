@@ -1,6 +1,6 @@
 # Lua Build System
 
-This project is a Lua-based build system designed to compile C++ projects. It can handle building, cleaning, and running a program by using clang++. It supports multi-action CLI commands and includes test cases to verify the correctness of the build process.
+This project is a Lua-based build system designed to compile C++ projects. It can handle building, cleaning, and running a program by using clang++. It supports multi-action CLI commands and includes test cases to verify the correctness of the build process. For an easier developpment [Teal](https://github.com/teal-language/tl) is used in place of lua.
 
 ## Features
 
@@ -11,8 +11,13 @@ This project is a Lua-based build system designed to compile C++ projects. It ca
 
 ## Prerequisites
 
-Make sure you have the following installed on your system: `lua`, `clang++`
+Make sure you have the following installed on your system: `lua`,`teal`
 
+````bash
+luarocks install tl
+tl run build_test.tl
+tl gen build.tl
+```
 
 ## Exected Project Structure
 
