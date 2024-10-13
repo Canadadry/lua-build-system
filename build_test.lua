@@ -4,9 +4,14 @@ require "build"
 
 
 local cmd_out = {}
+local stdout = ""
 local exec_called = {}
 
-function mock_exec_cmd(cmd, print_output)
+function mock_print(msg)
+    stdout = stdout .. msg .. "\n"
+end
+
+function mock_exec_cmd(print, cmd, print_output)
     table.insert(exec_called, cmd)
     local out = cmd_out[#exec_called] or ""
     return true, out, ""
@@ -14,10 +19,16 @@ end
 
 function setup(cmd_out_case)
     cmd_out = cmd_out_case
+    stdout = ""
     exec_called = {}
 end
 
-function test(expected)
+function test(expected, out)
+    if out ~= stdout then
+        assert("stdout out missmatch want \n\t\t'" .. out
+            .. "'\n\t but got \n\t\t'" .. stdout .. "'"
+        )
+    end
     if #expected ~= #exec_called then
         assert("call stack size expectd " .. #expected .. " but got " .. #exec_called)
     end
@@ -42,8 +53,8 @@ function run(test_case)
     for k, v in pairs(test_case) do
         assert_scope = k
         setup(v.cmd_out)
-        process_arguments(mock_exec_cmd, { "build", "target_name" })
-        test(v.exec_called)
+        process_arguments(mock_exec_cmd, mock_print, { "build", "target_name" })
+        test(v.exec_called, v.out)
     end
     print("Test successfully passed")
 end
@@ -56,6 +67,7 @@ local test_case = {
             "find src -type f",
             "clang++  -o target_name",
         },
+        out = "Build completed successfully.\n",
     },
     ["one cpp file"] = {
         cmd_out = {
@@ -67,6 +79,7 @@ local test_case = {
             "clang++ -Wall -Wextra -std=c++11  -c src/main.cpp -o src/main.o",
             "clang++ src/main.o -o target_name",
         },
+        out = "Build completed successfully.\n",
     },
     ["one cpp file with header lib"] = {
         cmd_out = {
@@ -79,6 +92,7 @@ local test_case = {
             "clang++ -Wall -Wextra -std=c++11 -Isrc/ext/ -c src/main.cpp -o src/main.o",
             "clang++ src/main.o -o target_name",
         },
+        out = "Build completed successfully.\n",
     },
     ["two cpp file with header lib"] = {
         cmd_out = {
@@ -92,6 +106,7 @@ local test_case = {
             "clang++ -Wall -Wextra -std=c++11 -Isrc/ext/ -Isrc/internal/ -c src/internal/impl.cpp -o src/internal/impl.o",
             "clang++ src/main.o src/internal/impl.o -o target_name",
         },
+        out = "Build completed successfully.\n",
     },
 }
 

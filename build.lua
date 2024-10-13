@@ -1,4 +1,4 @@
-function exec_cmd_impl(cmd, print_output)
+function exec_cmd_impl(print, cmd, print_output)
     local read_and_remove_file = function(filename)
         local output = ""
         local handle = io.open(filename, "r")
@@ -31,11 +31,11 @@ function exec_cmd_impl(cmd, print_output)
     return result == true, output, error_output
 end
 
-function find_files(exec_cmd, dir_path, extensions)
+function find_files(exec_cmd, print, dir_path, extensions)
     local files = {}
 
     local find_cmd = "find " .. dir_path .. " -type f"
-    local result, file_list, errors = exec_cmd(find_cmd)
+    local result, file_list, errors = exec_cmd(print, find_cmd)
 
     if result ~= true then
         print("Error finding files in directory: " .. errors)
@@ -67,14 +67,14 @@ function collect_include_dirs(files)
     return include_dirs
 end
 
-function compile_source(exec_cmd, source_file, include_flags_str)
+function compile_source(exec_cmd, print, source_file, include_flags_str)
     local object_file = source_file:gsub(".cpp$", ".o")
     local compile_cmd = "clang++ -Wall -Wextra -std=c++11 "
         .. include_flags_str
         .. " -c " .. source_file
         .. " -o " .. object_file
 
-    local result, _, errors = exec_cmd(compile_cmd, true)
+    local result, _, errors = exec_cmd(print, compile_cmd, true)
 
     if result ~= true then
         print("Error compiling " .. source_file .. ": " .. errors)
@@ -84,10 +84,10 @@ function compile_source(exec_cmd, source_file, include_flags_str)
     return object_file
 end
 
-function link_executable(exec_cmd, object_files, target)
+function link_executable(exec_cmd, print, object_files, target)
     local link_cmd = "clang++ " .. table.concat(object_files, " ") .. " -o " .. target
 
-    local result, _, errors = exec_cmd(link_cmd, true)
+    local result, _, errors = exec_cmd(print, link_cmd, true)
 
     if result ~= true then
         print("Error linking executable: " .. errors)
@@ -97,24 +97,24 @@ function link_executable(exec_cmd, object_files, target)
     print("Build completed successfully.")
 end
 
-function clean_build(exec_cmd, target)
+function clean_build(exec_cmd, print, target)
     print("Cleaning build...")
     local clean_cmd = "rm -f src/*.o " .. target
-    exec_cmd(clean_cmd, true)
+    exec_cmd(print, clean_cmd, true)
     print("Clean completed successfully.")
 end
 
-function run_program(exec_cmd, target)
+function run_program(exec_cmd, print, target)
     print("Running " .. target .. "...")
-    exec_cmd("./" .. target .. " scene.xml", true)
+    exec_cmd(print, "./" .. target .. " scene.xml", true)
 end
 
-function build_project(exec_cmd, target)
+function build_project(exec_cmd, print, target)
     local source_exts = { [".cpp"] = true }
     local header_exts = { [".h"] = true, [".hpp"] = true }
 
-    local source_files = find_files(exec_cmd, "src", source_exts)
-    local header_files = find_files(exec_cmd, "src", header_exts)
+    local source_files = find_files(exec_cmd, print, "src", source_exts)
+    local header_files = find_files(exec_cmd, print, "src", header_exts)
     local include_dirs = collect_include_dirs(header_files)
     local include_flags = {}
     for _, idir in ipairs(include_dirs) do
@@ -124,28 +124,28 @@ function build_project(exec_cmd, target)
 
     local object_files = {}
     for _, source_file in ipairs(source_files) do
-        local object_file = compile_source(exec_cmd, source_file, include_flags_str)
+        local object_file = compile_source(exec_cmd, print, source_file, include_flags_str)
         table.insert(object_files, object_file)
     end
 
-    link_executable(exec_cmd, object_files, target)
+    link_executable(exec_cmd, print, object_files, target)
 end
 
-function process_arguments(exec_cmd, cli_arg)
+function process_arguments(exec_cmd, print, cli_arg)
     local action = cli_arg[1]
     local target = cli_arg[2] or "a.aout"
 
     if action == "build" then
-        build_project(exec_cmd, target)
+        build_project(exec_cmd, print, target)
     elseif action == "clean" then
-        clean_build(exec_cmd, target)
+        clean_build(exec_cmd, print, target)
     elseif action == "run" then
-        run_program(exec_cmd, target)
+        run_program(exec_cmd, print, target)
     else
         print("Usage: lua build.lua [build|clean|run] [target]")
     end
 end
 
 if not _G.DontRun then
-    process_arguments(exec_cmd_impl, arg)
+    process_arguments(exec_cmd_impl, print, arg)
 end
