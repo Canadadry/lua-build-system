@@ -108,6 +108,18 @@ local test_case = {
         },
         out = "Build completed successfully.\n",
     },
+    ["one c file"] = {
+        cmd_out = {
+            "src/main.c"
+        },
+        exec_called = {
+            "find src -type f",
+            "find src -type f",
+            "clang++ -Wall -Wextra -std=c++11  -c src/main.c -o src/main.o",
+            "clang++ src/main.o -o target_name",
+        },
+        out = "Build completed successfully.\n",
+    },
 }
 
 run(test_case)

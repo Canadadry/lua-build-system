@@ -69,6 +69,7 @@ end
 
 function compile_source(exec_cmd, print, source_file, include_flags_str)
     local object_file = source_file:gsub(".cpp$", ".o")
+    object_file = object_file:gsub(".c$", ".o")
     local compile_cmd = "clang++ -Wall -Wextra -std=c++11 "
         .. include_flags_str
         .. " -c " .. source_file
@@ -110,7 +111,7 @@ function run_program(exec_cmd, print, target)
 end
 
 function build_project(exec_cmd, print, target)
-    local source_exts = { [".cpp"] = true }
+    local source_exts = { [".c"] = true, [".cpp"] = true }
     local header_exts = { [".h"] = true, [".hpp"] = true }
 
     local source_files = find_files(exec_cmd, print, "src", source_exts)
