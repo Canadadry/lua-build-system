@@ -1,3 +1,5 @@
+#!/usr/bin/env tl run
+
 global type Printer = function(string)
 local type Runner = function(printer:Printer, cmd:string, print_output?:boolean):(boolean,string,string)
 
@@ -75,10 +77,25 @@ local function collect_include_dirs(files:{string}):{string}
     return include_dirs
 end
 
-local function compile_source(exec_cmd:Runner, printer:Printer, compiler:string, compiler_options:string, source_file:string, include_flags_str:string):string
-    local object_file = source_file:gsub(".cpp$", ".o")
-    object_file = object_file:gsub(".c$", ".o")
-    local compile_cmd = compiler .. " " .. compiler_options .. " "
+
+local record Options
+    target:string
+    sources:string
+    compiler:string
+    compiler_options:string
+    linker:string
+    linker_options:string
+    sources_ext:{string}
+    headers_ext:{string}
+end
+
+
+local function compile_source(exec_cmd:Runner, printer:Printer,  source_file:string, include_flags_str:string, options:Options):string
+    local object_file =  source_file
+    for _, ext in ipairs(options.sources_ext) do
+       object_file = object_file:gsub(ext .. "$", ".o")
+    end
+    local compile_cmd = options.compiler .. " " .. options.compiler_options .. " "
         .. include_flags_str
         .. " -c " .. source_file
         .. " -o " .. object_file
@@ -93,11 +110,11 @@ local function compile_source(exec_cmd:Runner, printer:Printer, compiler:string,
     return object_file
 end
 
-local function link_executable(exec_cmd:Runner, printer:Printer, compiler:string, linker_options:string, object_files:{string}, target:string)
-    local link_cmd = compiler .. " "
-        .. linker_options .. " "
+local function link_executable(exec_cmd:Runner, printer:Printer,  object_files:{string},options:Options)
+    local link_cmd = options.linker .. " "
+        .. options.linker_options .. " "
         .. table.concat(object_files, " ")
-        .. " -o " .. target
+        .. " -o " .. options.target
 
     local result, _, errors = exec_cmd(print, link_cmd, true)
 
@@ -105,25 +122,22 @@ local function link_executable(exec_cmd:Runner, printer:Printer, compiler:string
         printer("Error linking executable: " .. errors)
         os.exit(1)
     end
-
-    printer("Build completed successfully.")
 end
 
-local function clean_build(exec_cmd:Runner, printer:Printer, target:string, sources:string)
+local function clean_build(exec_cmd:Runner, printer:Printer,  options:Options)
     printer("Cleaning build...")
-    local clean_cmd = "rm -f " .. sources .. "/*.o " .. target
+    local clean_cmd = "rm -f " .. options.sources .. "/*.o " .. options.target
     exec_cmd(printer, clean_cmd, true)
-    printer("Clean completed successfully.")
 end
 
-local function run_program(exec_cmd:Runner, printer:Printer, target:string)
-    printer("Running " .. target .. "...")
-    exec_cmd(print, "./" .. target .. " scene.xml", true)
+local function run_program(exec_cmd:Runner, printer:Printer,  options:Options)
+    printer("Running " .. options.target .. "...")
+    exec_cmd(print, "./" .. options.target .. " scene.xml", true)
 end
 
-local function build_project(exec_cmd:Runner, printer:Printer, target:string, sources:string, compiler:string, compiler_options:string, linker_options:string)
-    local source_files = find_files(exec_cmd, printer, sources, { ".c", ".cpp" })
-    local header_files = find_files(exec_cmd, printer, sources, { ".h", ".hpp" })
+local function build_project(exec_cmd:Runner, printer:Printer, options:Options)
+    local source_files = find_files(exec_cmd, printer, options.sources, options.sources_ext)
+    local header_files = find_files(exec_cmd, printer, options.sources, options.headers_ext)
     local include_dirs = collect_include_dirs(header_files)
     local include_flags:{string} = {}
     for _, idir in ipairs(include_dirs) do
@@ -133,11 +147,11 @@ local function build_project(exec_cmd:Runner, printer:Printer, target:string, so
 
     local object_files:{string} = {}
     for _, source_file in ipairs(source_files) do
-        local object_file = compile_source(exec_cmd, printer, compiler, compiler_options, source_file, include_flags_str)
+        local object_file = compile_source(exec_cmd, printer, source_file, include_flags_str, options)
         table.insert(object_files, object_file)
     end
 
-    link_executable(exec_cmd, printer, compiler, linker_options, object_files, target)
+    link_executable(exec_cmd, printer, object_files,options)
 end
 
 local function default_string(val:string, default:string):string
@@ -148,20 +162,27 @@ end
 
 global function process_arguments(exec_cmd:Runner, printer:Printer, cli_arg:{string})
     local action = cli_arg[1]
-    local target = default_string(cli_arg[2], "a.aout")
-    local sources = default_string(cli_arg[3], "src")
-    local compiler = default_string(cli_arg[4], "clang++")
-    local compiler_options = default_string(cli_arg[5], "-Wall -Wextra -std=c++11")
-    local linker_options = default_string(cli_arg[6], "")
+    local options:Options = {
+        target = default_string(cli_arg[2], "a.out"),
+        sources = default_string(cli_arg[3], "src"),
+        compiler = default_string(cli_arg[4], "clang++"),
+        compiler_options = default_string(cli_arg[5], "-Wall -Wextra -std=c++11"),
+        linker = default_string(cli_arg[6], "clang++"),
+        linker_options = default_string(cli_arg[7], ""),
+        sources_ext = {".c",".cpp"},
+        headers_ext = {".h",".hpp"},
+    }
 
     if action == "build" then
-        build_project(exec_cmd, printer, target, sources, compiler, compiler_options, linker_options)
+        build_project(exec_cmd, printer, options)
+        printer("Build completed successfully.")
     elseif action == "clean" then
-        clean_build(exec_cmd, printer, target, sources)
+        clean_build(exec_cmd, printer, options)
+        printer("Clean completed successfully.")
     elseif action == "run" then
-        run_program(exec_cmd, printer, target)
+        run_program(exec_cmd, printer, options)
     else
-        print("Usage: lua build.lua [build|clean|run] [target]")
+        print("Usage: ./build.tl [build|clean|run] [target]")
     end
 end
 

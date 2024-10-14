@@ -133,7 +133,7 @@ local test_case:{string:TestCase} = {
         out = "Build completed successfully.\n",
     },
     ["change compiler"] = {
-        arguments = { "build", "target_name", "", "gcc" },
+        arguments = { "build", "target_name", "", "gcc","","gcc" },
         cmd_out = {
             "src/main.c"
         },
@@ -146,7 +146,7 @@ local test_case:{string:TestCase} = {
         out = "Build completed successfully.\n",
     },
     ["change compiler option"] = {
-        arguments = { "build", "target_name", "", "gcc", "-pedantic" },
+        arguments = { "build", "target_name", "", "gcc", "-pedantic", "gcc" },
         cmd_out = {
             "src/main.c"
         },
@@ -159,7 +159,7 @@ local test_case:{string:TestCase} = {
         out = "Build completed successfully.\n",
     },
     ["change linker option"] = {
-        arguments = { "build", "target_name", "", "gcc", "-pedantic", "-O2" },
+        arguments = { "build", "target_name", "", "gcc", "-pedantic", "gcc","-O2" },
         cmd_out = {
             "src/main.c"
         },
@@ -172,7 +172,7 @@ local test_case:{string:TestCase} = {
         out = "Build completed successfully.\n",
     },
     ["change linker option without changing compiler and compilr_options"] = {
-        arguments = { "build", "target_name", "", "", "", "-O2" },
+        arguments = { "build", "target_name", "", "", "","", "-O2" },
         cmd_out = {
             "src/main.c"
         },
