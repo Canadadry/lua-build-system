@@ -11,9 +11,9 @@ This project is a Lua-based build system designed to compile C++ projects. It ca
 
 ## Prerequisites
 
-Make sure you have the following installed on your system: `lua`,`teal`
+Make sure you have the following installed on your system: `lua`,`luarocks`
 
-````bash
+```bash
 luarocks install tl
 tl run build_test.tl
 tl gen build.tl
